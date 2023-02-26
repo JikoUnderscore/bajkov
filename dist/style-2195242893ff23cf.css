@@ -1,0 +1,23 @@
+header {
+    background-color: #e8efeb;
+    padding: 30px;
+    text-align: end;
+    /* font-size: 35px; */
+    color: white;
+    /*align-items: ;*/
+    /* display: inline-grid; */
+}
+.blue{
+    color: #051fa6;
+}
+
+.red{
+    color: #fa0000;
+}
+
+
+
+.baj_message{
+    padding: 20px;
+    width: 500px;
+}
