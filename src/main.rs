@@ -1,26 +1,33 @@
 mod dogo;
 
 use std::collections::HashMap;
-use leptos::{JsCast, log, view, Scope, IntoView};
-use leptos::web_sys::{Document, Element, HtmlInputElement, KeyboardEvent};
-
+use leptos::{Scope, IntoView};
 
 #[leptos::component]
-pub fn InputC(cx: Scope, markov: Markov2Words<'static>, chat_el: Element) -> impl IntoView {
+pub fn InputC(cx: Scope, markov: Markov2Words<'static>) -> impl IntoView {
     // let (value, set_value) = leptos::create_signal(cx, 0);
 
     let mut markov = markov;
-    let mut chat_el = chat_el;
 
-    return view! { cx,
+
+    let input_ref =  leptos::leptos_dom::create_node_ref::<leptos::html::Input>(cx);
+
+
+    return leptos::view! { cx,
 
         <div>
            <form class="textform">
              <input
+                _ref=input_ref
+                type="text"
                 name="msg"
                 class="baj_message"
                 placeholder="Type a message and send with Enter."
-                on:keypress=move |e: KeyboardEvent| lisen(e, &mut markov, &mut chat_el)/>
+                on:keypress=move |e:  leptos::ev::KeyboardEvent|{
+                    let node = input_ref.get().expect("input_ref should be loaded by now");
+
+                    lisen(e, &mut markov, node)
+                }/>
             </form>
         </div>
     };
@@ -28,39 +35,55 @@ pub fn InputC(cx: Scope, markov: Markov2Words<'static>, chat_el: Element) -> imp
 
 
 
-pub fn lisen(e: KeyboardEvent, markov: &mut Markov2Words, chat_el: &mut Element) {
+pub fn lisen(e: leptos::ev::KeyboardEvent, markov: &mut Markov2Words, node: leptos::html::HtmlElement<leptos::html::Input>) {
     // log!("{:?}", random_inclusive_max_255(0, 10));
     if e.key() == "Enter" {
         e.prevent_default();
         // let msg = markov.get_random();
-        submit_pressed(chat_el, markov);
+        // let w = leptos::window();
+        // let p = w.performance();
+        // log!("{:?}", p);
+        submit_pressed(markov, node);
     }
 }
 
-fn submit_pressed(chat_el: &mut Element, markov: & mut Markov2Words) {
-    let dom: Document = leptos::document();
+fn submit_pressed(markov: &mut Markov2Words, text_box: leptos::html::HtmlElement<leptos::html::Input>) {
+    let dom = leptos::document();
 
-    let text_box: HtmlInputElement = dom.query_selector(".baj_message")
-        .expect("baj_message1")
-        .expect("baj_message2")
-        .unchecked_into();
+    // let text_box = dom.query_selector(".baj_message")
+    //     .unwrap()
+    //     .unwrap();
+// HtmlInputElement
+//     let text_box = dom.query_selector(".baj_message")
+//         .expect("to haev baj masage")
+//         .expect("ok baj");
+    // leptos::log!("{:?}", text_box.children());
 
+
+
+    let chat_el = dom.query_selector(".chat")
+        .expect("to find .chat")
+        .expect(".chat to be ok");
+
+    // let a = leptos::event_target_value(&text_box);
+    leptos::log!("{:?}", text_box.value());
 
     let mut chat_text = chat_el.inner_html();
-    let text_box_text = text_box.value();
+    // let text_box_text = text_box.node_value().unwrap_or_else(|| "-1".to_string());
+    let text_box_text: String = text_box.value();
 
     let mut buld = format!("<span class=\"blue\">{}</span><div></div>", text_box_text);
 
 
     let split = text_box_text.split(" ").collect::<Vec<_>>();
-    log!("{:?}", split);
+    leptos::log!("{:?}", split);
     if split.len() < 2 {
-        log!("empty");
+        leptos::log!("empty");
         buld.push_str("<span class=\"red\">");
         buld.push_str(markov.get_random().as_str());
         buld.push_str("</span><div></div>");
     } else {
-        log!("not empty");
+        leptos::log!("not empty");
         buld.push_str("<span class=\"red\">");
         buld.push_str(markov.get_from_two_words(text_box_text).as_str());
         buld.push_str("</span><div></div>");
@@ -78,18 +101,11 @@ pub fn main() {
 
     // let _ = console_log::init_with_level(log::Level::Debug);
     console_error_panic_hook::set_once();
-    let dom: Document = leptos::document();
-
-    let chat = dom.query_selector(".chat")
-        .expect("to find .chat")
-        .expect(".chat to be ok");
 
 
-
-    leptos::mount_to_body(|cx| view! { cx,
+    leptos::mount_to_body(|cx| leptos::view! { cx,
         <InputC
             markov = m
-            chat_el = chat
         />
     });
 }
@@ -100,13 +116,13 @@ pub struct Markov2Words<'m> {
 }
 
 
-unsafe fn get_random_buf() -> u8 {
-    let mut buf = [0u8; 1];
+unsafe fn get_random_buf() -> u16 {
+    let mut buf = [0u8; 2];
 
     getrandom::getrandom(&mut buf).unwrap();
 
 
-    return buf[0];
+    return std::mem::transmute(buf);
 }
 
 
@@ -221,7 +237,7 @@ impl<'m> Markov2Words<'m> {
     }
 
     pub fn get_random(&mut self) -> String {
-        let rand = random_inclusive_max_255(0, 50);
+        let rand = random_inclusive_max_255(0, (self.chain.len() - 1) as u32);
 
         let pair = self.chain.keys().skip(rand as usize).next().unwrap();
 
