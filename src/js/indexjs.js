@@ -6,6 +6,7 @@ class Markov2Words {
         var _a, _b, _c;
         this.chain = new Map();
         for (let i = 0; i < dataarray.length; ++i) {
+            // @ts-ignore
             const split = dataarray[i].split(" ")
                 .filter((value, _index, _array) => value !== "");
             if (split.length === 1) {
@@ -15,16 +16,16 @@ class Markov2Words {
                 const first = (_a = split[j]) !== null && _a !== void 0 ? _a : split[split.length - j];
                 const second = (_b = split[j + 1]) !== null && _b !== void 0 ? _b : split[split.length - (j + 1)];
                 const third = (_c = split[j + 2]) !== null && _c !== void 0 ? _c : split[split.length - (j + 2)];
-                this.insert([first, second, third]);
+                // @ts-ignore
+                this.insert(first, second, third);
                 if (j + 3 >= split.length) {
                     break;
                 }
             }
         }
     }
-    insert(window) {
-        const new_items = window[0] + " " + window[1];
-        const third_word = window[2];
+    insert(first, second, third_word) {
+        const new_items = first + " " + second;
         const element = this.chain.get(new_items);
         if (element !== undefined) {
             const inner_element = element.get(third_word);
@@ -51,6 +52,7 @@ class Markov2Words {
                     return two_strings;
                 }
             }
+            return undefined;
         };
         const two_strings = chosen_strings();
         if (two_strings === undefined) {
@@ -80,7 +82,9 @@ class Markov2Words {
     create_markov_chain(choise) {
         const sentence_builder = [];
         let two_choise = choise.split(" ");
+        // @ts-ignore
         sentence_builder.push(two_choise[0]);
+        // @ts-ignore
         sentence_builder.push(two_choise[1]);
         do {
             two_choise = choise.split(" ");
@@ -100,12 +104,12 @@ class Markov2Words {
                     let random = random_exclusive(0, sum);
                     let pref_sum = 0;
                     for (const [key, v] of element) {
+                        pref_sum += v;
                         if (pref_sum >= random) {
                             choise = two_choise[1] + " " + key;
                             sentence_builder.push(key);
                             break;
                         }
-                        pref_sum += v;
                     }
                 }
             }
@@ -122,17 +126,17 @@ document.querySelector(".baj_message")
     .addEventListener("keydown", function (e) {
     if (e.key === "Enter") {
         e.preventDefault();
-        // const t0 = performance.now();
+        const t0 = performance.now();
         submit_pressed();
-        // const t1 = performance.now();
-        // console.log(`took ${t1 - t0} milliseconds.`);
+        const t1 = performance.now();
+        console.log(`took ${t1 - t0} milliseconds.`);
     }
 });
 function submit_pressed() {
     const chat_el = document.querySelector(".chat");
     const text_box_input = document.querySelector(".baj_message");
     const input_form = document.querySelector(".textform");
-    text_box_input.value;
+    // text_box_input.value
     chat_el.innerHTML += "<span class='blue'>" + text_box_input.value + "</span><div></div>";
     const split = text_box_input.value.split(" ");
     if (split.length < 2) {

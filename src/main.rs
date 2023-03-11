@@ -3,6 +3,21 @@ mod dogo;
 use std::collections::HashMap;
 use leptos::{Scope, IntoView};
 
+pub fn main() {
+    let m = Markov2Words::new();
+
+    // let _ = console_log::init_with_level(log::Level::Debug);
+    console_error_panic_hook::set_once();
+
+
+    leptos::mount_to_body(|cx| leptos::view! { cx,
+        <InputC
+            markov = m
+        />
+    });
+}
+
+
 #[leptos::component]
 pub fn InputC(cx: Scope, markov: Markov2Words<'static>) -> impl IntoView {
     // let (value, set_value) = leptos::create_signal(cx, 0);
@@ -10,7 +25,7 @@ pub fn InputC(cx: Scope, markov: Markov2Words<'static>) -> impl IntoView {
     let mut markov = markov;
 
 
-    let input_ref =  leptos::leptos_dom::create_node_ref::<leptos::html::Input>(cx);
+    let input_ref = leptos::leptos_dom::create_node_ref::<leptos::html::Input>(cx);
 
 
     return leptos::view! { cx,
@@ -34,16 +49,15 @@ pub fn InputC(cx: Scope, markov: Markov2Words<'static>) -> impl IntoView {
 }
 
 
-
 pub fn lisen(e: leptos::ev::KeyboardEvent, markov: &mut Markov2Words, node: leptos::html::HtmlElement<leptos::html::Input>) {
     // log!("{:?}", random_inclusive_max_255(0, 10));
     if e.key() == "Enter" {
         e.prevent_default();
         // let msg = markov.get_random();
-        // let w = leptos::window();
-        // let p = w.performance();
-        // log!("{:?}", p);
+        // let w = std::time::Instant::now();
         submit_pressed(markov, node);
+        // leptos::log!("{:?}", w.elapsed().as_millis());
+
     }
 }
 
@@ -60,13 +74,12 @@ fn submit_pressed(markov: &mut Markov2Words, text_box: leptos::html::HtmlElement
     // leptos::log!("{:?}", text_box.children());
 
 
-
     let chat_el = dom.query_selector(".chat")
         .expect("to find .chat")
         .expect(".chat to be ok");
 
     // let a = leptos::event_target_value(&text_box);
-    leptos::log!("{:?}", text_box.value());
+    // leptos::log!("{:?}", text_box.value());
 
     let mut chat_text = chat_el.inner_html();
     // let text_box_text = text_box.node_value().unwrap_or_else(|| "-1".to_string());
@@ -76,7 +89,6 @@ fn submit_pressed(markov: &mut Markov2Words, text_box: leptos::html::HtmlElement
 
 
     let split = text_box_text.split(" ").collect::<Vec<_>>();
-    leptos::log!("{:?}", split);
     if split.len() < 2 {
         leptos::log!("empty");
         buld.push_str("<span class=\"red\">");
@@ -93,21 +105,6 @@ fn submit_pressed(markov: &mut Markov2Words, text_box: leptos::html::HtmlElement
     chat_text.push_str(buld.as_str());
     chat_el.set_inner_html(&chat_text);
     text_box.set_value("");
-}
-
-
-pub fn main() {
-    let m = Markov2Words::new();
-
-    // let _ = console_log::init_with_level(log::Level::Debug);
-    console_error_panic_hook::set_once();
-
-
-    leptos::mount_to_body(|cx| leptos::view! { cx,
-        <InputC
-            markov = m
-        />
-    });
 }
 
 
@@ -154,23 +151,9 @@ impl<'m> Markov2Words<'m> {
             }
 
             for i in 0..len {
-                let first = if let Some(s) = dogo::MAP.get(i) {
-                    s
-                } else {
-                    dogo::MAP[len - i]
-                };
-
-                let second = if let Some(s) = dogo::MAP.get(i + 1) {
-                    s
-                } else {
-                    dogo::MAP[len - (i + 1)]
-                };
-
-                let third = if let Some(s) = dogo::MAP.get(i + 2) {
-                    s
-                } else {
-                    dogo::MAP[len - (i + 2)]
-                };
+                let first = split.get(i).unwrap_or_else(|| &split[len - i]);
+                let second = split.get(i).unwrap_or_else(|| &split[len - (i + 1)]);
+                let third = split.get(i).unwrap_or_else(|| &split[len - (i + 2)]);
 
 
                 Markov2Words::insert(&mut this, first, second, third);
@@ -199,7 +182,7 @@ impl<'m> Markov2Words<'m> {
     }
 
     pub fn create_markov_chain<'f>(&mut self, mut choice: (&'f str, &'f str)) -> String where 'm: 'f {
-        let mut sentence = String::with_capacity(50);
+        let mut sentence = String::with_capacity(365);
 
         sentence.push_str(choice.0);
         sentence.push(' ');
@@ -215,17 +198,18 @@ impl<'m> Markov2Words<'m> {
                 } else {
                     let sum: u32 = element.values().sum();
 
-                    let random = random_inclusive_max_255(0, sum-1);
+                    let random = random_inclusive_max_255(0, sum - 1);
 
                     let mut pref_sum = 0;
                     for (key, v) in element.iter() {
+                        pref_sum += *v;
+
                         if pref_sum >= random {
                             choice = (choice.1, key);
                             sentence.push(' ');
                             sentence.push_str(key);
                             break;
                         }
-                        pref_sum += *v;
                     }
                 }
             } else {
@@ -245,8 +229,7 @@ impl<'m> Markov2Words<'m> {
         return self.create_markov_chain(*pair);
     }
 
-    pub fn get_from_two_words(&mut self, text_box_text: String) -> String{
-
+    pub fn get_from_two_words(&mut self, text_box_text: String) -> String {
         let mut pair: Option<(&str, &str)> = None;
         {
             let split = text_box_text.split(" ").collect::<Vec<_>>();

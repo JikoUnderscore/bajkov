@@ -9,6 +9,7 @@ class Markov2Words {
 
     constructor() {
         for (let i = 0; i < dataarray.length; ++i) {
+            // @ts-ignore
             const split = dataarray[i].split(" ")
                 .filter((value, _index, _array) => value !== "");
 
@@ -22,7 +23,8 @@ class Markov2Words {
                 const third = split[j + 2] ?? split[split.length - (j + 2)];
 
 
-                this.insert([first, second, third]);
+                // @ts-ignore
+                this.insert(first, second, third);
                 if (j + 3 >= split.length) {
                     break;
                 }
@@ -34,9 +36,8 @@ class Markov2Words {
 
     }
 
-    insert(window: [string, string, string]) {
-        const new_items = window[0] + " " + window[1];
-        const third_word = window[2];
+    insert(first: string, second: string, third_word: string) {
+        const new_items = first + " " + second;
 
 
         const element = this.chain.get(new_items);
@@ -67,6 +68,7 @@ class Markov2Words {
                     return two_strings;
                 }
             }
+            return undefined;
         }
 
         const two_strings = chosen_strings();
@@ -105,7 +107,9 @@ class Markov2Words {
         const sentence_builder: string[] = [];
 
         let two_choise = choise.split(" ");
+        // @ts-ignore
         sentence_builder.push(two_choise[0]);
+        // @ts-ignore
         sentence_builder.push(two_choise[1]);
         do {
             two_choise = choise.split(" ");
@@ -128,12 +132,13 @@ class Markov2Words {
                     let pref_sum = 0;
 
                     for (const [key, v] of element) {
+                        pref_sum += v;
+
                         if (pref_sum >= random) {
                             choise = two_choise[1] + " " + key;
                             sentence_builder.push(key);
                             break;
                         }
-                        pref_sum += v;
                     }
 
                 }
@@ -156,10 +161,10 @@ document.querySelector<HTMLInputElement>(".baj_message")!
     .addEventListener("keydown", function (e: KeyboardEvent) {
         if (e.key === "Enter") {
             e.preventDefault();
-            // const t0 = performance.now();
+            const t0 = performance.now();
             submit_pressed();
-            // const t1 = performance.now();
-            // console.log(`took ${t1 - t0} milliseconds.`);
+            const t1 = performance.now();
+            console.log(`took ${t1 - t0} milliseconds.`);
         }
     });
 

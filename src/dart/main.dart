@@ -1,6 +1,6 @@
-// ignore_for_file: non_constant_identifier_names, unnecessary_this
+// ignore_for_file: unnecessary_this
 // dart compile js -o .\src\dart\main.dart.js .\src\dart\main.dart -O4
-
+//non_constant_identifier_names
 import 'dart:math' as math;
 import 'dart:collection';
 import 'dart:html' as dom;
@@ -91,10 +91,11 @@ class Markov2Words {
   }
 
   String create_markov_chain(Pair<String, String> choice){
-    final sentence_builder = <String>[];
+    final sentence_builder = StringBuffer();
 
-    sentence_builder.add(choice.a);
-    sentence_builder.add(choice.b);
+    sentence_builder.write(choice.a);
+    sentence_builder.write(" ");
+    sentence_builder.write(choice.b);
     // print(this.chain);
 
     do{
@@ -106,7 +107,8 @@ class Markov2Words {
           // final key = this.chain[choice]!.keys.first;
           for(final key in this.chain[choice]!.keys){
             choice = Pair(choice.b, key);
-            sentence_builder.add(key);
+            sentence_builder.write(" ");
+            sentence_builder.write(key);
           }
         } else{
           var sum = 0;
@@ -118,26 +120,28 @@ class Markov2Words {
           var pref_sum = 0;
 
           for(final kv in element.entries){
+            pref_sum += kv.value;
+
             if(pref_sum >= random){
               choice = Pair(choice.b, kv.key);
-              sentence_builder.add(kv.key);
+              sentence_builder.write(" ");
+              sentence_builder.write(kv.key);
               break;
             }
-            pref_sum += kv.value;
           }
         }
       }else{
         break;
       }
 
-    }while (sentence_builder.length < 50);
+    }while (sentence_builder.length < 365);
 
 
-    return sentence_builder.join(" ");
+    return sentence_builder.toString();
   }
 
   String get_random(){
-    final rand = random_exclusive(1, 51);
+    final rand = random_exclusive(1, this.chain.length);
 
     final pair = this.chain.keys.elementAt(rand);
     print("${pair.a} ${pair.b}");
@@ -148,7 +152,7 @@ class Markov2Words {
     // len higher than two is handled elsewhere
     final split = user_string.split(" ");
 
-    Pair<String, String>? choice;
+    Pair<String, String>? choice = null;
 
 
     for(var i= 0; i < split.length-1; ++i){
@@ -190,10 +194,10 @@ void lisen(dom.Event e, Markov2Words markov){
 
   if (ee.key == "Enter"){
     e.preventDefault();
-    // final t0 = DOM.window.performance.now();
+    final t0 = dom.window.performance.now();
     submit_pressed(markov);
-    // final t1 = DOM.window.performance.now();
-    // print("took ${t1 - t0} milliseconds");
+    final t1 = dom.window.performance.now();
+    print("took ${t1 - t0} milliseconds");
 
   }
 }
