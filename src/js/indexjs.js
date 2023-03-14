@@ -29,9 +29,7 @@ class Markov2Words {
         const element = this.chain.get(new_items);
         if (element !== undefined) {
             const inner_element = element.get(third_word);
-            // console.log(inner_element);
             if (inner_element !== undefined) {
-                // console.log(element.has(third_word));
                 element.set(third_word, inner_element + 1);
             }
             else {
@@ -48,7 +46,6 @@ class Markov2Words {
             for (let i = 0; i < split.length - 1; i++) {
                 const two_strings = split[i] + " " + split[i + 1];
                 if (this.chain.has(two_strings)) {
-                    // console.log("FOUND", two_strings);
                     return two_strings;
                 }
             }
@@ -117,7 +114,6 @@ class Markov2Words {
                 break;
             }
         } while (sentence_builder.length < 50);
-        console.log(sentence_builder.length);
         return sentence_builder.join(" ");
     }
 }
