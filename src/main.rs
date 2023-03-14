@@ -22,7 +22,7 @@ pub fn main() {
 pub fn InputC(cx: Scope, markov: Markov2Words<'static>) -> impl IntoView {
     // let (value, set_value) = leptos::create_signal(cx, 0);
 
-    let mut markov = markov;
+    let markov = markov;
 
 
     let input_ref = leptos::leptos_dom::create_node_ref::<leptos::html::Input>(cx);
@@ -41,7 +41,7 @@ pub fn InputC(cx: Scope, markov: Markov2Words<'static>) -> impl IntoView {
                 on:keypress=move |e:  leptos::ev::KeyboardEvent|{
                     let node = input_ref.get().expect("input_ref should be loaded by now");
 
-                    lisen(e, &mut markov, node)
+                    lisen(e, &markov, node)
                 }/>
             </form>
         </div>
@@ -49,7 +49,7 @@ pub fn InputC(cx: Scope, markov: Markov2Words<'static>) -> impl IntoView {
 }
 
 
-pub fn lisen(e: leptos::ev::KeyboardEvent, markov: &mut Markov2Words, node: leptos::html::HtmlElement<leptos::html::Input>) {
+pub fn lisen(e: leptos::ev::KeyboardEvent, markov: &Markov2Words, node: leptos::html::HtmlElement<leptos::html::Input>) {
     // log!("{:?}", random_inclusive_max_255(0, 10));
     if e.key() == "Enter" {
         e.prevent_default();
@@ -61,7 +61,7 @@ pub fn lisen(e: leptos::ev::KeyboardEvent, markov: &mut Markov2Words, node: lept
     }
 }
 
-fn submit_pressed(markov: &mut Markov2Words, text_box: leptos::html::HtmlElement<leptos::html::Input>) {
+fn submit_pressed(markov: &Markov2Words, text_box: leptos::html::HtmlElement<leptos::html::Input>) {
     let dom = leptos::document();
 
     // let text_box = dom.query_selector(".baj_message")
@@ -152,8 +152,8 @@ impl<'m> Markov2Words<'m> {
 
             for i in 0..len {
                 let first = split.get(i).unwrap_or_else(|| &split[len - i]);
-                let second = split.get(i).unwrap_or_else(|| &split[len - (i + 1)]);
-                let third = split.get(i).unwrap_or_else(|| &split[len - (i + 2)]);
+                let second = split.get(i+1).unwrap_or_else(|| &split[len - (i + 1)]);
+                let third = split.get(i+2).unwrap_or_else(|| &split[len - (i + 2)]);
 
 
                 Markov2Words::insert(&mut this, first, second, third);
@@ -181,7 +181,7 @@ impl<'m> Markov2Words<'m> {
         }
     }
 
-    pub fn create_markov_chain<'f>(&mut self, mut choice: (&'f str, &'f str)) -> String where 'm: 'f {
+    pub fn create_markov_chain<'f>(&self, mut choice: (&'f str, &'f str)) -> String where 'm: 'f {
         let mut sentence = String::with_capacity(365);
 
         sentence.push_str(choice.0);
@@ -220,7 +220,7 @@ impl<'m> Markov2Words<'m> {
         return sentence;
     }
 
-    pub fn get_random(&mut self) -> String {
+    pub fn get_random(&self) -> String {
         let rand = random_inclusive_max_255(0, (self.chain.len() - 1) as u32);
 
         let pair = self.chain.keys().skip(rand as usize).next().unwrap();
@@ -229,7 +229,7 @@ impl<'m> Markov2Words<'m> {
         return self.create_markov_chain(*pair);
     }
 
-    pub fn get_from_two_words(&mut self, text_box_text: String) -> String {
+    pub fn get_from_two_words(&self, text_box_text: String) -> String {
         let mut pair: Option<(&str, &str)> = None;
         {
             let split = text_box_text.split(" ").collect::<Vec<_>>();
