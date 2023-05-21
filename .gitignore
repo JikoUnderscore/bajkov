@@ -1,0 +1,8 @@
+/target
+/dist/snippets/
+/Cargo.lock
+/.idea
+/src/dart/newdata.dart
+/src/js/newdata.json
+/src/dart/main.dart.js.deps
+/src/dart/main.dart.js.map
