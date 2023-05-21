@@ -16,10 +16,13 @@ final dataarray = d.MAP;
 //   'forsen forsen forsen forsen forsen forsen'
 // ];
 
-
 String handle_error(List<String> split, int i) {
   try {
-    return split[i];
+    final split2 = split[i];
+    if (split2 == null) {  // WHY: with `-04` optimisation it dose no throw an error so we have to chech it when compiling to js
+      return split[split.length - i];
+    }
+    return split2;
   } on RangeError {
     return split[split.length - i];
   }
@@ -65,7 +68,8 @@ final class Markov2Words {
         element[third] = 1;
       }
     } else {
-      this.chain[new_items] = HashMap.fromEntries([MapEntry(third, 1)]);
+      final Iterable<MapEntry<String, int>> entry = [MapEntry(third, 1)];
+      this.chain[new_items] = HashMap.fromEntries(entry);
     }
   }
 
@@ -80,22 +84,12 @@ final class Markov2Words {
     do {
       final element = this.chain[choice];
 
-      // TODO??: fix (?? fixed with dart 3.0 ??) `Clown NFT`
-      // expected `Clown NFT Clown` got  `Clown NFT`
-
       if (element != null) {
         if (element.length == 1) {
-          try {
-            final key = element.keys.elementAt(0);
-            if (key == null){ // WHY: this is needed or undefined/null gets appended
-              break;
-            }            
-            choice = (choice.$2, key);
-            sentence_builder.write(" ");
-            sentence_builder.write("here?$key");
-          } on Error {
-            break;
-          }
+          final key = element.keys.elementAt(0);
+          choice = (choice.$2, key);
+          sentence_builder.write(" ");
+          sentence_builder.write(key);
         } else {
           var sum = 0;
           for (final v in element.values) {
