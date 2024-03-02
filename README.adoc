@@ -1,0 +1,8 @@
+# Visit websie
+https://jikounderscore.github.io/bajkov/
+
+
+# About
+A https://en.wikipedia.org/wiki/Markov_chain[markov chain] based on comment from www.reddit.com/r/forsen
+
+Static/client side website.
